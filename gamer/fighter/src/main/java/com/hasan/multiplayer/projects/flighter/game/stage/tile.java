@@ -1,6 +1,6 @@
 package com.hasan.multiplayer.projects.flighter.game.stage;
 
-import java.awt.image.BufferedImage;
+import java.awt.Image;
 
 import com.hasan.multiplayer.projects.flighter.game.enums.stageEnums.collisionPenalty;
 
@@ -14,7 +14,7 @@ import com.hasan.multiplayer.projects.flighter.game.enums.stageEnums.collisionPe
 public class tile {
     public final int id;
     public final String name;
-    public final BufferedImage tile;
+    public final Image tile;
     public final boolean collidable;
     public final collisionPenalty collisionPenalty;
 
@@ -25,7 +25,7 @@ public class tile {
      * @param collidable
      * @param collisionPenalty
      */
-    public tile (int id, String name, BufferedImage tile, boolean collidable, collisionPenalty collisionPenalty){
+    public tile (int id, String name, Image tile, boolean collidable, collisionPenalty collisionPenalty){
         this.id = id;
         this.name = name;
         this.tile = tile;

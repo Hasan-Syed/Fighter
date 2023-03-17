@@ -15,8 +15,8 @@ import com.hasan.multiplayer.projects.fighter.server.enums.logger.statusType;
 import com.hasan.multiplayer.projects.fighter.server.enums.multiplayer.serverMessageReturnType;
 
 public class client extends Thread {
+    boolean gameUpdateNotRecived = false;
     public boolean _newPlayer = true;
-    public boolean ready = false;
     final server mainServerClass;
     // Client Reader and Writer
     final BufferedReader fromClient;
@@ -42,6 +42,7 @@ public class client extends Thread {
     public JSONArray _objectDelete = new JSONArray();
     public JSONArray _projectileUpdate = new JSONArray();
     public JSONObject _castedAbility = new JSONObject();
+    public JSONObject _miniGameData = new JSONObject();
     public JSONArray playerDelete = new JSONArray();
 
     public client(Socket clientSocket, server mainServerClass) throws IOException {
@@ -161,15 +162,17 @@ public class client extends Thread {
      */
     public synchronized void run() {
         while (true) {
-            ready = false;
             // Update Client List
             this.connectedClients = mainServerClass.clientList;
             // Create Return gameObject
             {
                 gameUpdate();
             }
-            if (ready) {
+            {
                 processGameUpdate();
+            }
+            if (gameUpdateNotRecived) {
+                break;
             }
             _newPlayer = false;
         }
@@ -200,24 +203,20 @@ public class client extends Thread {
         JSONArray objectUpdates = new JSONArray();
         JSONArray objectDelete = new JSONArray();
         JSONArray projectileUpdates = new JSONArray();
-        JSONArray castedUpdates = new JSONArray();
+        JSONArray castedAbility = new JSONArray();
+        JSONArray miniGameData = new JSONArray();
         // This loop is to loop through all clients, so all clients can get this clients
         // Updates
-        for (int index = 0; index != connectedClients.size(); index++) {
-            // if all clients have been updated
-            if (index == connectedClients.size() - 1) {
-                // set Ready to true, so new data can be recived
-                ready = true;
-            }
-            // Get the client from the clientList and index
-            client player = connectedClients.get(index);
+        for (client player : connectedClients) {
             // Aslong as 'player clientID' is not the same as this client perform the
             // information feed
             if (player.clientID != clientID) {
                 if (!player._playerUpdate.isEmpty())
                     playerUpdates.put(player._playerUpdate);
-                if (!player._objectSpawn.isEmpty())
+                if (!player._objectSpawn.isEmpty()) {
                     objectSpawns.put(player._objectSpawn);
+                    System.out.println(_objectSpawn);
+                }
                 if (!player._objectUpdate.isEmpty())
                     objectUpdates.put(player._objectUpdate);
                 if (!player._objectDelete.isEmpty())
@@ -225,10 +224,23 @@ public class client extends Thread {
                 if (!player._projectileUpdate.isEmpty())
                     projectileUpdates.put(player._projectileUpdate);
                 if (!player._castedAbility.isEmpty())
-                    castedUpdates.put(player._castedAbility);
+                    castedAbility.put(player._castedAbility);
                 // Check if the player is new
                 if (player._newPlayer) {
                     playerSpawn.put(player._mySpawnObject);
+                }
+                // If Minigame Data needs to be Sent
+                if (!player._miniGameData.isEmpty()) {
+                    JSONObject tempMinigameData = player._miniGameData;
+                    // get all the recipients of the Minigame Data
+                    JSONArray recipients = tempMinigameData.getJSONArray("recipients");
+                    for (int index = 0; index != recipients.length(); index++) {
+                        int recipientID = recipients.getInt(index);
+                        if (recipientID == clientID) {
+                            miniGameData.put(tempMinigameData);
+                            break;
+                        }
+                    }
                 }
             }
         }
@@ -239,21 +251,39 @@ public class client extends Thread {
         gameUpdateRTNTemp.put("playerDelete", playerDelete);
         gameUpdateRTNTemp.put("objectSpawns", objectSpawns);
         gameUpdateRTNTemp.put("objectUpdates", objectUpdates);
-        gameUpdateRTNTemp.put("objectDelete", objectDelete);
+        gameUpdateRTNTemp.put("objectDeletes", objectDelete);
         gameUpdateRTNTemp.put("projectileUpdates", projectileUpdates);
-        gameUpdateRTNTemp.put("castedUpdates", castedUpdates);
+        gameUpdateRTNTemp.put("castedAbility", castedAbility);
+        gameUpdateRTNTemp.put("miniGameData", miniGameData);
         JSONObject gameUpdateRTNFinal = new JSONObject()
                 .put("gameUpdate", gameUpdateRTNTemp);
         // Return gameupdate to client
         writeClient(gameUpdateRTNFinal);
     }
 
-    private void processGameUpdate(){
+    /**
+     * {@code processGameUpdate()} as the name says, <strong>processes</strong> and
+     * <strong>recives</strong> the {@code gameUpdate}, this method is used to
+     * seperate and retrieve game objects;
+     * <ol>
+     * <li>{@code playerUpdate}</li>
+     * <li>{@code objectSpawn}</li>
+     * <li>{@code objectUpdate}</li>
+     * <li>{@code objectDelete}</li>
+     * <li>{@code projectileUpdate}</li>
+     * <li>{@code castedAbility}</li>
+     * </ol>
+     * These objects are saved on the clients update variables, for later retrieval
+     * in {@code gameUpdate()}.
+     */
+    private void processGameUpdate() {
         // Read gameUpdate
         JSONObject gameUpdate = (JSONObject) readClient(serverMessageReturnType.jsonObject);
         // Stop the Client Connection
         if (gameUpdate == null) {
             logger(statusType.statusUpdate, "The gameUpdate was null");
+            gameUpdateNotRecived = true;
+            return;
         }
         // Extract updates, spawns, casts off game updates
         if (gameUpdate.has("gameUpdate")) {
@@ -263,9 +293,7 @@ public class client extends Thread {
             }
             if (gameUpdate.has("objectSpawn")) {
                 _objectSpawn = gameUpdate.getJSONArray("objectSpawn");
-                if (_objectSpawn.length() > 0) {
-                    _myObjectSpawns.putAll(_objectSpawn);
-                }
+                _myObjectSpawns.putAll(_objectSpawn);
                 for (client client : connectedClients) {
                     if (client.clientID != clientID)
                         client._objectSpawn.putAll(_objectSpawn);
@@ -274,14 +302,25 @@ public class client extends Thread {
             if (gameUpdate.has("objectUpdate")) {
                 _objectUpdate = gameUpdate.getJSONArray("objectUpdate");
             }
+            if (gameUpdate.has("objectDelete")) {
+                _objectDelete = gameUpdate.getJSONArray("objectDelete");
+                for (client client : connectedClients) {
+                    if (client.clientID != clientID)
+                        client._objectDelete.putAll(_objectDelete);
+                }
+            }
             if (gameUpdate.has("projectileUpdate")) {
                 _projectileUpdate = gameUpdate.getJSONArray("projectileUpdate");
             }
             if (gameUpdate.has("castedAbility")) {
                 _castedAbility = gameUpdate.getJSONObject("castedAbility");
             }
+            if (gameUpdate.has("minigameData")) {
+                _miniGameData = gameUpdate.getJSONObject("minigameData");
+            }
         }
     }
+
     private Object readClient(serverMessageReturnType returnType) {
         try {
             switch (returnType) {

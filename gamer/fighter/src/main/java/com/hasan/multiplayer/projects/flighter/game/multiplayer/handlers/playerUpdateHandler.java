@@ -7,10 +7,17 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.hasan.multiplayer.projects.flighter.game.enums.logger.playerUpdateHEnum;
-import com.hasan.multiplayer.projects.flighter.game.gameObjects.entityTypes.superPlayer;
+import com.hasan.multiplayer.projects.flighter.game.gameObjects.entities.playerType.superPlayer;
 import com.hasan.multiplayer.projects.flighter.game.gamePanel.gamePanel;
 import com.hasan.multiplayer.projects.flighter.game.multiplayer.multiplayer;
 
+/**
+ * playerUpdateHandler, used to update player-type entities in the client
+ * 
+ * @author Hasan Syed
+ * @since 1.0
+ * @version 1.0
+ */
 public class playerUpdateHandler {
     final gamePanel gp;
     final multiplayer multiplayer;
@@ -36,7 +43,7 @@ public class playerUpdateHandler {
                 superPlayer player = gp.players.stream().filter((user) -> user.ID == playerID)
                         .findFirst().get();
                 // Apply the Update
-                player.setPlayerUpdate(update);
+                player.setUpdate(update);
             } catch (NoSuchElementException playerDoesntExist) {
                 update = playerUpdates.getJSONObject(index);
                 // Check if the Player Exists

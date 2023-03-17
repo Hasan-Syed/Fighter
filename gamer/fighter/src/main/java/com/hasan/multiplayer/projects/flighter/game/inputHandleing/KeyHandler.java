@@ -14,8 +14,9 @@ import java.awt.event.KeyEvent;
  */
 public class KeyHandler implements KeyListener {
 
+    public boolean escape;
     public boolean upKey, downKey, leftKey, rightKey; // Character movement Keys
-    public boolean testThrow = false;
+    public boolean interactKey;
     public boolean multipleyerThrow;
     public boolean shiftGearUp, shiftGearDown;
     public List<Boolean> ability = new ArrayList<>();
@@ -72,10 +73,13 @@ public class KeyHandler implements KeyListener {
                 shiftGearDown = true;
             }
             case KeyEvent.VK_E -> {
-                testThrow = true;
+                interactKey = true;
             }
             case KeyEvent.VK_Q -> {
                 multipleyerThrow = true;
+            }
+            case KeyEvent.VK_ESCAPE -> {
+                escape = true;
             }
         }
     }
@@ -109,10 +113,13 @@ public class KeyHandler implements KeyListener {
                 shiftGearDown = false;
             }
             case KeyEvent.VK_E -> {
-                testThrow = false;
+                interactKey = false;
             }
             case KeyEvent.VK_Q -> {
                 multipleyerThrow = false;
+            }
+            case KeyEvent.VK_ESCAPE -> {
+                escape = false;
             }
         }
     }

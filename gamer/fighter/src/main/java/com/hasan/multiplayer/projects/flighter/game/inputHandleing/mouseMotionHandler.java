@@ -1,6 +1,7 @@
 package com.hasan.multiplayer.projects.flighter.game.inputHandleing;
 
 import java.awt.event.MouseMotionListener;
+import java.awt.Point;
 import java.awt.event.MouseEvent;
 
 /**
@@ -11,14 +12,13 @@ import java.awt.event.MouseEvent;
  * @since 1.0
  */
 public class mouseMotionHandler implements MouseMotionListener {
-    public int mouseX, mouseY;
+    public Point mouseLoc = new Point();
 
     public void mouseDragged(MouseEvent e) {
 
     }
 
     public void mouseMoved(MouseEvent e) {
-        mouseX = e.getX();
-        mouseY = e.getY();
+        mouseLoc = new Point(e.getX(), e.getY());
     }
 }

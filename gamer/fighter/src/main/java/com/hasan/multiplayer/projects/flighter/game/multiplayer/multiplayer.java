@@ -13,10 +13,12 @@ import java.awt.Graphics;
 
 import com.hasan.multiplayer.projects.flighter.game.enums.logger.statusType;
 import com.hasan.multiplayer.projects.flighter.game.enums.multiplayer.serverMessageReturnType;
-import com.hasan.multiplayer.projects.flighter.game.gameObjects.object.dagger;
-import com.hasan.multiplayer.projects.flighter.game.gameObjects.objectTypes.superObject;
+import com.hasan.multiplayer.projects.flighter.game.gameObjects.entities.objectType.superObject;
+import com.hasan.multiplayer.projects.flighter.game.gameObjects.entities.objectType.objects.dagger;
 import com.hasan.multiplayer.projects.flighter.game.gamePanel.gamePanel;
+import com.hasan.multiplayer.projects.flighter.game.multiplayer.handlers.objectDeleteHandler;
 import com.hasan.multiplayer.projects.flighter.game.multiplayer.handlers.objectSpawnHandler;
+import com.hasan.multiplayer.projects.flighter.game.multiplayer.handlers.objectUpdateHandler;
 import com.hasan.multiplayer.projects.flighter.game.multiplayer.handlers.playerDeleteHandler;
 import com.hasan.multiplayer.projects.flighter.game.multiplayer.handlers.playerSpawnHandler;
 import com.hasan.multiplayer.projects.flighter.game.multiplayer.handlers.playerUpdateHandler;
@@ -40,6 +42,8 @@ public class multiplayer {
     final playerUpdateHandler playerUpdateHandler;
     final playerDeleteHandler playerDeleteHandler;
     final objectSpawnHandler objectSpawnHandler;
+    final objectUpdateHandler objectUpdateHandler;
+    final objectDeleteHandler objectDeleteHandler;
 
     public JSONArray _playerSpawns;
     public JSONArray _objectSpawns;
@@ -58,8 +62,10 @@ public class multiplayer {
         this.gp = gp;
         this.playerUpdateHandler = new playerUpdateHandler(gp, this);
         this.playerSpawnHandler = new playerSpawnHandler(gp, this);
-        playerDeleteHandler = new playerDeleteHandler(gp, this);
+        this.playerDeleteHandler = new playerDeleteHandler(gp, this);
         this.objectSpawnHandler = new objectSpawnHandler(gp, this);
+        this.objectUpdateHandler = new objectUpdateHandler(gp, this);
+        this.objectDeleteHandler = new objectDeleteHandler(gp, this);
         initializeClient();
     }
 
@@ -137,8 +143,8 @@ public class multiplayer {
                         logger(statusType.response, new JSONObject().put("username?", username)); // Logger
                     }
                     case "mySpawn?" -> {
-                        writeServer(new JSONObject().put("mySpawn?", gp.player.getPlayerSpawn()));
-                        logger(statusType.response, new JSONObject().put("spawnObject?", gp.player.getPlayerSpawn())); // Logger
+                        writeServer(new JSONObject().put("mySpawn?", gp.player.getSpawn()));
+                        logger(statusType.response, new JSONObject().put("spawnObject?", gp.player.getSpawn())); // Logger
                     }
                     case "finish-Initialize" -> {
                         initialize = false;
@@ -170,22 +176,41 @@ public class multiplayer {
                     JSONArray playerDelete = gameUpdate.getJSONArray("playerDelete");
                     playerDeleteHandler.playerDelete(playerDelete);
                 }
-                if (gameUpdate.has("objectSpawns")){
+                if (gameUpdate.has("objectSpawns")) {
                     JSONArray objectSpawns = gameUpdate.getJSONArray("objectSpawns");
                     objectSpawnHandler.objectSpawn(objectSpawns);
                 }
+                if (gameUpdate.has("objectUpdate")) {
+                    JSONArray objectUpdates = gameUpdate.getJSONArray("objectUpdate");
+                    objectUpdateHandler.updateObject(objectUpdates);
+                }
+                if (gameUpdate.has("objectDeletes")) {
+                    JSONArray objectDelete = gameUpdate.getJSONArray("objectDeletes");
+                    objectDeleteHandler.objectDelete(objectDelete);
+                }
 
-                
-                if (gp.keyH.testThrow){
-                    superObject so = new dagger(gp);
-                    so.worldPosition = gp.player.worldPosition;
-                    gp.gameObjects.add(so);
+                if (gp.keyH.interactKey) {
+                    superObject so = new dagger(gp, gp.player);
                     updateToSent.put("objectSpawn", new JSONArray().put(so.getSpawn()));
-                    gp.keyH.testThrow = false;
+                    gp.keyH.interactKey = false;
                 } else {
                     updateToSent.put("objectSpawn", new JSONArray());
                 }
-                updateToSent.put("playerUpdate", gp.player.getPlayerUpdate());
+                if (gp.keyH.multipleyerThrow && gp.gameObjects.size() > 0) {
+                    superObject so = gp.gameObjects.get(2);
+                    updateToSent.put("objectDelete", new JSONArray().put(so.getDelete()));
+                    gp.keyH.multipleyerThrow = false;
+                } else {
+                    updateToSent.put("objectDelete", new JSONArray());
+                }
+                JSONArray updateJArray = new JSONArray();
+                // send spwned Object Updates
+                gp.gameObjects.stream()
+                        .filter((updateObject) -> updateObject.spawnedBy == clientID)
+                        .forEach(object -> updateJArray.put(object.getUpdate()));
+
+                        updateToSent.put("objectUpdate", updateJArray);
+                updateToSent.put("playerUpdate", gp.player.getUpdate());
 
                 writeServer(new JSONObject().put("gameUpdate", updateToSent));
             }

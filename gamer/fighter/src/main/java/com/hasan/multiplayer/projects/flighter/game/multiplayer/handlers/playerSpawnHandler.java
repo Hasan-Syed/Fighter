@@ -3,12 +3,21 @@ package com.hasan.multiplayer.projects.flighter.game.multiplayer.handlers;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import com.hasan.multiplayer.projects.flighter.game.HUD.notifyEnum.notifyType;
 import com.hasan.multiplayer.projects.flighter.game.enums.logger.playerSpawnHEnum;
-import com.hasan.multiplayer.projects.flighter.game.gameObjects.entityTypes.superPlayer;
-import com.hasan.multiplayer.projects.flighter.game.gameObjects.playerTypeEntities.remotePlayer;
+import com.hasan.multiplayer.projects.flighter.game.gameObjects.entities.playerType.superPlayer;
+import com.hasan.multiplayer.projects.flighter.game.gameObjects.entities.playerType.playerTypeEntities.remotePlayer;
 import com.hasan.multiplayer.projects.flighter.game.gamePanel.gamePanel;
 import com.hasan.multiplayer.projects.flighter.game.multiplayer.multiplayer;
+import com.hasan.multiplayer.projects.flighter.game.tools.tools;
 
+/**
+ * playerUpdateHandler, used to spawn player-type entities on the client
+ * 
+ * @author Hasan Syed
+ * @since 1.0
+ * @version 1.0
+ */
 public class playerSpawnHandler {
     final gamePanel gp;
     final multiplayer multiplayer;
@@ -40,6 +49,7 @@ public class playerSpawnHandler {
                 spawn = playerSpawns.getJSONObject(index);
                 remotePlayer newPlayer = new remotePlayer(gp, true, spawn);
                 gp.players.add(newPlayer);
+                gp.hud.addNewMidNotification(tools.UUIDCreator(), newPlayer.name + " has joined", 3, "[multiplayer][playerSpawnHandler]", notifyType.success);
                 logger(playerSpawnHEnum.playerSpawned, "UN=" + newPlayer.name + " ID=" + newPlayer.ID);
             }
         }
