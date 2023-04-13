@@ -1,0 +1,19 @@
+[
+    {
+        "health": {
+            "cHealth": 0,
+            "destructible": false,
+            "maxHealth": 0
+        },
+        "ID": 872609,
+        "interactable": true,
+        "location": {
+            "angle": 0,
+            "x": 200,
+            "y": 211
+        },
+        "name": "RPS",
+        "object": "Rock_Paper_Scissors",
+        "spawnedBy": 65228
+    }
+]

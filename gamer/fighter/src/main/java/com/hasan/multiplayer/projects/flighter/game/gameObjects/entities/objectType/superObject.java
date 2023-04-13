@@ -29,6 +29,7 @@ public abstract class superObject extends gameObject {
     public float maxHealth, cHealth;
     // Spawner and Holder's Information
     public int spawnedBy;
+    public superPlayer spawnedByE;
     public superPlayer holder;
     // Hitbox Settings
     public boolean ignorable;
@@ -42,10 +43,10 @@ public abstract class superObject extends gameObject {
     public int angle;
     public boolean interactable;
 
-    protected superObject(gamePanel gp, object whatsThis) {
+    protected superObject(gamePanel gp, object whatsThis, boolean remoteControlled) {
         super(gp, com.hasan.multiplayer.projects.flighter.game.gameObjects.enums.gameObjectType.object);
         this.whatsThis = whatsThis;
-        // TODO Auto-generated constructor stub
+        this.remoteControlled = remoteControlled;
     }
 
     protected abstract void loadAssets();
@@ -68,6 +69,8 @@ public abstract class superObject extends gameObject {
         this.spawnedBy = update.getInt("spawnedBy");
         this.name = update.getString("name");
         this.currentSprite = update.getInt("currentSprite");
+        this.interactable = update.getBoolean("interactable");
+        this.remoteControlled = update.getBoolean("remote-Controlled");
         // Health
         {
             JSONObject health = update.getJSONObject("health");
@@ -90,6 +93,7 @@ public abstract class superObject extends gameObject {
                 .put("spawnedBy", spawnedBy)
                 .put("name", name)
                 .put("currentSprite", currentSprite)
+                .put("interactable", interactable)
                 .put("health", new JSONObject()
                         .put("destructible", destructible)
                         .put("maxHealth", maxHealth)
@@ -104,6 +108,8 @@ public abstract class superObject extends gameObject {
         this.ID = spawn.getInt("ID");
         this.spawnedBy = spawn.getInt("spawnedBy");
         this.name = spawn.getString("name");
+        this.interactable = spawn.getBoolean("interactable");
+        this.remoteControlled = spawn.getBoolean("remote-Controlled");
         // Health
         {
             JSONObject health = spawn.getJSONObject("health");
@@ -126,6 +132,7 @@ public abstract class superObject extends gameObject {
                 .put("spawnedBy", gp.multiplayer.clientID)
                 .put("object", whatsThis)
                 .put("name", name)
+                .put("interactable", interactable)
                 .put("health", new JSONObject()
                         .put("destructible", destructible)
                         .put("maxHealth", maxHealth)

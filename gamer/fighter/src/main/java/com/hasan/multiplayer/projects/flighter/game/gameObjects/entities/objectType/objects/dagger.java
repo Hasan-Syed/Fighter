@@ -26,7 +26,7 @@ public class dagger extends superObject implements weapon, ActionListener {
     public Line2D hitbox;
 
     public dagger(gamePanel gp) {
-        super(gp, object.dagger);
+        super(gp, object.dagger, false);
         loadAssets();
         new tools();
         this.ID = tools.UUIDCreator();
@@ -36,8 +36,8 @@ public class dagger extends superObject implements weapon, ActionListener {
         // TODO Auto-generated constructor stub
     }
 
-    public dagger(gamePanel gp, superPlayer owner) {
-        super(gp, object.dagger);
+    public dagger(gamePanel gp, superPlayer owner, boolean remoteControlled) {
+        super(gp, object.dagger, remoteControlled);
         this.equippedBy = owner;
         loadAssets();
         new tools();

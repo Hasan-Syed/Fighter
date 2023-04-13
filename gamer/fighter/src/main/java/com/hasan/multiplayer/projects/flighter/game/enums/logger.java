@@ -4,6 +4,16 @@ import com.hasan.multiplayer.projects.flighter.game.enums.objectEnum.object;
 import com.hasan.multiplayer.projects.flighter.game.enums.sources.source;
 
 public class logger {
+    public enum serverType {
+        mainMulti("main Multiplayer"),
+        lobby ("client Lobby");
+
+        final String code;
+        private serverType (String code){
+            this.code = code;
+        }
+
+    }
     public enum statusType {
         statusUpdate(0),
         response(1),

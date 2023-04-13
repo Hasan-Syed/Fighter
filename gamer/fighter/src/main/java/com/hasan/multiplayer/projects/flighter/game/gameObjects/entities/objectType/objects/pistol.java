@@ -19,8 +19,8 @@ public class pistol extends superObject implements gunType, ActionListener {
     private double cooldownAmnt;
     private double recoilDownAmnt;
 
-    protected pistol(gamePanel gp, object whatsThis) {
-        super(gp, whatsThis);
+    protected pistol(gamePanel gp, object whatsThis, boolean remoteControlled) {
+        super(gp, whatsThis, remoteControlled);
         gunStatus = status.initializing;
         this.name = "Basic Piston";
         // TODO Auto-generated constructor stub

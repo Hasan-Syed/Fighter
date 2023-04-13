@@ -70,6 +70,13 @@ public class objectSpawnHandler {
                             gp.gameObjects.add(objectToBeSpawned);
                             logger(objectSpawnHEnum.objectSpawned, object, "Object Spawned, ID=" + objectToBeSpawned.ID);
                         }
+                        case Rock_Paper_Scissors -> {
+                            objectToBeSpawned = object.getObject(gp, spawnedBy);
+                            objectToBeSpawned.setSpawn(spawn);
+                            gp.gameObjects.add(objectToBeSpawned);
+                            logger(objectSpawnHEnum.objectSpawned, object, "Object Spawned, ID=" + objectToBeSpawned.ID);
+                        }
+                        default -> throw new IllegalArgumentException("Unexpected value: " + object);
                     }
                 }
             }

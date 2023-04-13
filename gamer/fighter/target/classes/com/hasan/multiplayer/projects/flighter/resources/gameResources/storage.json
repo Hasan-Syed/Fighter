@@ -1,0 +1,33 @@
+{
+    "residential-Loc" : [
+        {
+            "postName" : "Burning Glass Rd",
+            "maxCapacity" : 3,
+            "resicenseType" : "apartment",
+            "residenceMates" : [
+                "Bilal",
+                "Mahreen"
+            ],
+            "Cost": {
+                "paymentType" : "by-weekly",
+                "splitType" : "3-way",
+                "amount" : 60
+            },
+            "address" : {
+                "display" : "203-212 Burning Glass Road",
+                "suitNo." : "203",
+                "address" : "212 Burning Glass Road",
+                "postalCode" : "",
+                "city" : "Winnipeg",
+                "province" : "Manitoba"
+            },
+            "closeByAmenities" : [
+                "subway",
+                "shopper drug mart",
+                "tim hortons",
+                "mcdonald's",
+                "etc"
+            ]
+        }
+    ]
+}

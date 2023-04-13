@@ -25,8 +25,9 @@ public class player extends superPlayer {
 
         init();
     }
-    
+
     private ScheduledExecutorService notification = Executors.newScheduledThreadPool(1);
+
     void init() {
         this.name = "Hasan";
         this.remoteControlled = false;
@@ -55,36 +56,34 @@ public class player extends superPlayer {
         }
         g2d.setColor(Color.CYAN);
         g2d.draw(hitbox);
-        g2d.drawString(String.format("%.2f", cHealth), worldPosition.x, worldPosition.y-20);
-        g2d.drawString(worldPosition.x + ", " + worldPosition.y, 50,50);
+        g2d.drawString(String.format("%.2f", cHealth), worldPosition.x, worldPosition.y - 20);
+        g2d.drawString(worldPosition.x + ", " + worldPosition.y, 50, 50);
     }
+
     boolean currentlyHealing;
+
     @Override
     public synchronized void update() {
-        if (!currentlyHealing){
+        if (!currentlyHealing) {
             difference inc = new difference(+524.65f, 10, this);
 
-            notification.scheduleWithFixedDelay(inc, 0,1, TimeUnit.SECONDS);
+            notification.scheduleWithFixedDelay(inc, 0, 1, TimeUnit.SECONDS);
             currentlyHealing = true;
         }
-        if (keyH.upKey) {
-            worldPosition.y -= (9.8 * gp.deltaTime) + 5;
+        if (!engaged){
+            if (keyH.leftKey) {
+                worldPosition.x -= cSpeed;
+            }
+            if (keyH.rightKey) {
+                worldPosition.x += cSpeed;
+            }
+            if (keyH.upKey) {
+                worldPosition.y -= cSpeed;
+            }
+            if (keyH.downKey) {
+                worldPosition.y += cSpeed;
+            }
         }
-        if (worldPosition.y < gp.getHeight() && !keyH.upKey && !this.collisionBottom) {
-            worldPosition.y += 9.8 * gp.deltaTime;
-        }
-        if (keyH.leftKey) {
-            worldPosition.x -= cSpeed;
-        }
-        if (keyH.rightKey) {
-            worldPosition.x += cSpeed;
-        }
-        // if (keyH.upKey) {
-        // worldPosition.y -= cSpeed;
-        // }
-        // if (keyH.downKey) {
-        // worldPosition.y += cSpeed;
-        // }
 
         hitbox.setLocation(worldPosition);
         hitbox();

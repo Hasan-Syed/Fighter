@@ -6,6 +6,8 @@ import java.net.UnknownHostException;
 import javax.swing.JFrame;
 
 import com.hasan.multiplayer.projects.flighter.game.gamePanel.gamePanel;
+import com.hasan.multiplayer.projects.flighter.game.inputHandleing.mouseHandler;
+import com.hasan.multiplayer.projects.flighter.game.inputHandleing.mouseMotionHandler;
 
 /**
  * Main Loader Class
@@ -17,12 +19,21 @@ public class App extends JFrame
 {
     public gamePanel gamePanel;
 
+    mouseMotionHandler mMotionH;
+    mouseHandler mouseH;
+
     public App () throws UnknownHostException, IOException{
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setTitle("Fighter Game");
         setResizable(true);
+
+        mouseH = new mouseHandler();
+        mMotionH = new mouseMotionHandler();
+
+        addMouseListener(mouseH);
+        addMouseMotionListener(mMotionH);
         
-        gamePanel = new gamePanel();
+        gamePanel = new gamePanel(mMotionH, mouseH);
         add(gamePanel);
         pack();
         

@@ -1,12 +1,15 @@
 package com.hasan.multiplayer.projects.flighter.game.gamePanel;
 
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.MouseInfo;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -26,7 +29,6 @@ import com.hasan.multiplayer.projects.flighter.game.inputHandleing.KeyHandler;
 import com.hasan.multiplayer.projects.flighter.game.inputHandleing.mouseHandler;
 import com.hasan.multiplayer.projects.flighter.game.inputHandleing.mouseMotionHandler;
 import com.hasan.multiplayer.projects.flighter.game.HUD.notifyEnum.notifyType;
-import com.hasan.multiplayer.projects.flighter.game.gameObjects.entities.objectType.objects.rpsMiniGame.*;;
 
 /**
  * gamePanel is the backbone of the Game, as it is used to initialize all
@@ -39,6 +41,7 @@ import com.hasan.multiplayer.projects.flighter.game.gameObjects.entities.objectT
  */
 public class gamePanel extends JPanel implements Runnable {
     public final multiplayer multiplayer;
+    public final String connectionIP = "25.72.7.137";
     // HUD Management
     public HUD hud;
     public List<notifyBar> notificationList;
@@ -63,7 +66,9 @@ public class gamePanel extends JPanel implements Runnable {
     // Controls
     public KeyHandler keyH = new KeyHandler();
     public mouseMotionHandler mMotionH = new mouseMotionHandler();
-    public mouseHandler houseH = new mouseHandler();
+    public mouseHandler mouseH = new mouseHandler();
+    public Point mouseTrack = MouseInfo.getPointerInfo().getLocation();
+    public Rectangle mouseHitbox = new Rectangle(0,0,0,0);
     // Player
     public superPlayer player;
     public List<superObject> gameObjects = new ArrayList<>();
@@ -74,38 +79,32 @@ public class gamePanel extends JPanel implements Runnable {
     public boolean drawPlayers = true;
     public boolean drawObjects = true;
     // Game Object *mini game*
-    rps rps;
-    com.hasan.multiplayer.projects.flighter.game.gameObjects.entities.objectType.objects.rps.rps rps1;
 
     entityInfoDisplay eid;
 
-    public gamePanel() throws UnknownHostException, IOException {
+    public gamePanel(mouseMotionHandler mMotionH, mouseHandler mouseH) throws UnknownHostException, IOException {
         windowSize = new Dimension(800, 420);
         this.setPreferredSize(windowSize); // Set Screen Size
         this.setBackground(Color.BLACK); // Background Color;
         this.setDoubleBuffered(true); // Paint Setting
         this.addKeyListener(keyH); // Add Key Listener
-        this.addMouseMotionListener(mMotionH);
-        this.addMouseListener(houseH);
         this.setFocusable(true);
+        this.mMotionH = mMotionH;
+        this.mouseH = mouseH;
+        this.addMouseListener(mouseH);
+        this.addMouseMotionListener(mMotionH);
         // Initialize Variables
         hud = new HUD(this);
         stage = new stageManager(this);
         this.addKeyListener(keyH);
 
         player = new player(this, keyH, 0);
-        this.multiplayer = new multiplayer("localhost", 5050, this);
+        this.multiplayer = new multiplayer(connectionIP, 5050, this);
         player.ID = multiplayer.clientID;
-        rps = new rps(this);
 
-        hud.addNewMidNotification(tools.UUIDCreator(), "Welcome", 10, "[gamePanel]", notifyType.success);
+        hud.addNewMidNotification(tools.UUIDCreator(), "Welcome", 4, "[gamePanel]", notifyType.success);
 
-        hud.addNewTopNotification(tools.UUIDCreator(), "Welcome", 10, "[gamePanel]", notifyType.success);
-
-
-        eid = new entityInfoDisplay(player, false, new Point(windowSize.width/2,100));
-        rps1 = new com.hasan.multiplayer.projects.flighter.game.gameObjects.entities.objectType.objects.rps.rps(this);
-        rps1.worldPosition = new Point(200, 200);
+        eid = new entityInfoDisplay(player, false, new Point(windowSize.width / 2, 100));
     }
 
     public void startGameThread() {
@@ -119,7 +118,9 @@ public class gamePanel extends JPanel implements Runnable {
      * they can be updated (if any available)
      */
     public void update() {
-        rps1.update();
+        mouseTrack = MouseInfo.getPointerInfo().getLocation();
+        SwingUtilities.convertPointFromScreen(mouseTrack, this);
+        mouseHitbox.setFrameFromCenter(mouseTrack.x, mouseTrack.y, mouseTrack.x-10, mouseTrack.y-10);
         multiplayer.update();
         hud.update();
         player.update();
@@ -130,7 +131,6 @@ public class gamePanel extends JPanel implements Runnable {
         for (gameObject gameObject : gameObjects) {
             gameObject.update();
         }
-        rps.update();
         eid.update();
     }
 
@@ -141,25 +141,25 @@ public class gamePanel extends JPanel implements Runnable {
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
         Graphics2D g2d = (Graphics2D) g;
-        
+
         if (drawStage)
-        stage.draw((Graphics2D)g2d.create());
+            stage.draw((Graphics2D) g2d.create());
         if (drawPlayer)
-        player.draw((Graphics2D)g2d.create());
+            player.draw((Graphics2D) g2d.create());
         if (drawPlayers)
-        players.forEach(client -> {
-            client.draw((Graphics2D)g2d.create());
-        });
+            players.forEach(client -> {
+                client.draw((Graphics2D) g2d.create());
+            });
         if (drawObjects) {
             for (gameObject gameObject : gameObjects) {
-                gameObject.draw((Graphics2D)g2d.create());
+                gameObject.draw((Graphics2D) g2d.create());
             }
         }
         multiplayer.draw(g2d.create());
-        rps.draw(g2d);
 
-        rps1.draw(g2d);
         hud.draw(g2d);
+        g.setColor(Color.RED);
+        g2d.dispose();
     }
 
     @Override

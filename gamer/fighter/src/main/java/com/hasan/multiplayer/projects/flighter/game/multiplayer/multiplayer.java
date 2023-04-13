@@ -11,10 +11,11 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import java.awt.Graphics;
 
+import com.hasan.multiplayer.projects.flighter.game.HUD.notifyEnum.notifyType;
 import com.hasan.multiplayer.projects.flighter.game.enums.logger.statusType;
 import com.hasan.multiplayer.projects.flighter.game.enums.multiplayer.serverMessageReturnType;
 import com.hasan.multiplayer.projects.flighter.game.gameObjects.entities.objectType.superObject;
-import com.hasan.multiplayer.projects.flighter.game.gameObjects.entities.objectType.objects.dagger;
+import com.hasan.multiplayer.projects.flighter.game.gameObjects.entities.objectType.objects.rps.rps;
 import com.hasan.multiplayer.projects.flighter.game.gamePanel.gamePanel;
 import com.hasan.multiplayer.projects.flighter.game.multiplayer.handlers.objectDeleteHandler;
 import com.hasan.multiplayer.projects.flighter.game.multiplayer.handlers.objectSpawnHandler;
@@ -22,6 +23,7 @@ import com.hasan.multiplayer.projects.flighter.game.multiplayer.handlers.objectU
 import com.hasan.multiplayer.projects.flighter.game.multiplayer.handlers.playerDeleteHandler;
 import com.hasan.multiplayer.projects.flighter.game.multiplayer.handlers.playerSpawnHandler;
 import com.hasan.multiplayer.projects.flighter.game.multiplayer.handlers.playerUpdateHandler;
+import com.hasan.multiplayer.projects.flighter.game.tools.tools;
 
 /**
  * multiplayer, is used to set the game online
@@ -32,7 +34,7 @@ import com.hasan.multiplayer.projects.flighter.game.multiplayer.handlers.playerU
  */
 public class multiplayer {
     public int clientID;
-    public String username = "Hasan";
+    public final String username;
 
     public gamePanel gp;
 
@@ -56,6 +58,7 @@ public class multiplayer {
 
     public multiplayer(String host, int port, gamePanel gp) throws UnknownHostException, IOException {
         server = new Socket(host, port);
+        username = gp.player.name;
         this.toServer = new PrintWriter(server.getOutputStream(), true); // Initialize Server Writer
         this.fromServer = new BufferedReader(new InputStreamReader(server.getInputStream())); // Initialize Server
                                                                                               // Response Reader
@@ -78,6 +81,10 @@ public class multiplayer {
                     return Double.parseDouble(fromServer.readLine());
                 case string:
                     return fromServer.readLine();
+                case jsonArray:
+                    return new JSONArray(fromServer.readLine());
+                default:
+                    break;
             }
         } catch (IOException e) {
             System.out.println("[Multiplayer][readServer]: There was a problem reading the server's input");
@@ -188,21 +195,37 @@ public class multiplayer {
                     JSONArray objectDelete = gameUpdate.getJSONArray("objectDeletes");
                     objectDeleteHandler.objectDelete(objectDelete);
                 }
+                if (gameUpdate.has("miniGameServer") && !gameUpdate.getJSONObject("miniGameServer").isEmpty()){
+                    System.out.println(gameUpdate.getJSONObject("miniGameServer"));
+                    boolean spinUp = gameUpdate.getJSONObject("miniGameServer").getBoolean("spunUp");
 
-                if (gp.keyH.interactKey) {
-                    superObject so = new dagger(gp, gp.player);
+                    if (spinUp){
+                        gp.hud.addNewMidNotification(tools.UUIDCreator(), "mini-server Spun up", 5, "[miniGame]", notifyType.success);
+                    }
+                }
+
+                if (gp.keyH.multipleyerThrow) {
+                    superObject so = new rps(gp, gp.player, false);
+                    so.worldPosition.setLocation(gp.player.worldPosition);
                     updateToSent.put("objectSpawn", new JSONArray().put(so.getSpawn()));
-                    gp.keyH.interactKey = false;
+                    gp.keyH.multipleyerThrow = false;
+                    gp.gameObjects.add(so);
+
+                    updateToSent.put("miniGameServer", new JSONObject()
+                                        .put("name", "RPS")
+                                        .put("maxEntities", 2)
+                                        .put("port", 5621));
+            
                 } else {
                     updateToSent.put("objectSpawn", new JSONArray());
                 }
-                if (gp.keyH.multipleyerThrow && gp.gameObjects.size() > 0) {
-                    superObject so = gp.gameObjects.get(2);
-                    updateToSent.put("objectDelete", new JSONArray().put(so.getDelete()));
-                    gp.keyH.multipleyerThrow = false;
-                } else {
-                    updateToSent.put("objectDelete", new JSONArray());
-                }
+                // if (gp.keyH.multipleyerThrow && gp.gameObjects.size() > 0) {
+                //     superObject so = gp.gameObjects.get(2);
+                //     updateToSent.put("objectDelete", new JSONArray().put(so.getDelete()));
+                //     gp.keyH.multipleyerThrow = false;
+                // } else {
+                //     updateToSent.put("objectDelete", new JSONArray());
+                // }
                 JSONArray updateJArray = new JSONArray();
                 // send spwned Object Updates
                 gp.gameObjects.stream()
